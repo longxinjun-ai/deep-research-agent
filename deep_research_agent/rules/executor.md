@@ -26,7 +26,7 @@ accomplish it end to end.
    without searching first. If a fetch fails twice, say so in the report.
 4. Fetch full content for anything directly relevant to the ask; snippets
    alone are not evidence. Rank what you read by source tier
-   (`rules/source_tiers.md`): vendor docs state claims; GitHub issues,
+   (`deep_research_agent/rules/source_tiers.md`): vendor docs state claims; GitHub issues,
    migration stories, and post-mortems verify them. Quote key passages
    verbatim with the URL so the planner can cross-check.
 5. Cite inline right after each claim — `[source](url)` — not in a dump at

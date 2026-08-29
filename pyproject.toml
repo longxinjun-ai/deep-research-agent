@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "deep-research-agent"
+version = "0.1.0"
+description = "Document-driven deep & wide research agent system — synthesis of grapeot's deep_research_agent, codex_wide_research, and context-infrastructure"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "deep-research-agent contributors" }]
+dependencies = [
+    "openai>=1.40",
+    "httpx>=0.27",
+    "trafilatura>=1.12",
+    "ddgs>=9.0",
+]
+[project.optional-dependencies]
+anthropic = ["anthropic>=0.34"]
+
+[project.scripts]
+deep-research-agent = "deep_research_agent.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["deep_research_agent*"]
+
+[tool.setuptools.package-data]
+deep_research_agent = ["rules/*.md"]

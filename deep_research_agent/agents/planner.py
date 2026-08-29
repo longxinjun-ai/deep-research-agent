@@ -1,7 +1,7 @@
 """Planner agent: decomposition, success criteria, next-step assignment.
 
 Design (from grapeot/deep_research_agent, hardened):
-- Reads its behavior contract from rules/planner.md at startup.
+- Reads its behavior contract from deep_research_agent/rules/planner.md at startup.
 - Every round it re-reads the scratchpad (all context lives in files).
 - Its ONLY tool is create_file; it never talks to the executor through
   chat output — the scratchpad is the single communication channel.

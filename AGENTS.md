@@ -13,9 +13,9 @@
 | Change wide-research fan-out/aggregation | `deep_research_agent/wide.py` |
 | Add/change a tool (search, fetch, files, commands) | `deep_research_agent/tools/`, register in `tools/__init__.py` |
 | Add an LLM provider quirk | `deep_research_agent/llm.py` |
-| Tune agent behavior contracts | `rules/planner.md`, `rules/executor.md` (agents read these at runtime) |
+| Tune agent behavior contracts | `deep_research_agent/rules/planner.md`, `deep_research_agent/rules/executor.md` (agents read these at runtime) |
 | Adjust pricing for cost tracking | `deep_research_agent/usage.py` (`PRICES`) |
-| Review the methodology | `rules/*.md`, `docs/survey_workflow.md` |
+| Review the methodology | `deep_research_agent/rules/*.md`, `docs/survey_workflow.md` |
 
 ## Invariants — do not break these
 
@@ -23,8 +23,8 @@
    exchange instructions through model output.
 2. **Wide-mode aggregation is pure code.** `wide.aggregate` must never call
    an LLM; only `synthesize` does, chapter by chapter.
-3. **Rules files are runtime-loaded.** `rules/planner.md` and
-   `rules/executor.md` are read by the agents at startup — edit them like
+3. **Rules files are runtime-loaded.** `deep_research_agent/rules/planner.md` and
+   `deep_research_agent/rules/executor.md` are read by the agents at startup — edit them like
    code, not comments.
 4. **Session confinement.** Executor file writes stay inside the run
    directory; destructive commands pass the blocklist + confirmation gate.

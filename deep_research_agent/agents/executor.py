@@ -1,14 +1,14 @@
 """Executor agent: tool-using field researcher.
 
 Design (from grapeot/deep_research_agent, hardened):
-- Reads its behavior contract from rules/executor.md at startup.
+- Reads its behavior contract from deep_research_agent/rules/executor.md at startup.
 - Agentic tool loop: search -> fetch -> create_file -> (confirm-gated)
   commands, up to MAX_STEPS actions per invocation.
 - MUST write findings to files (search reports with URLs) and update the
   scratchpad's status/feedback sections before returning — undocumented
   effort is wasted effort.
 - Incentive-aware source tiers and anti-hallucination rules (never invent
-  URLs; cite everything) are baked into rules/executor.md.
+  URLs; cite everything) are baked into deep_research_agent/rules/executor.md.
 """
 from __future__ import annotations
 

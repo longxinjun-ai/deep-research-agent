@@ -41,7 +41,7 @@ makes them expert.
 
 ## How this repo consumes personal context
 
-- `rules/planner.md` §stopping-conditions asks *why the user asked this* —
+- `deep_research_agent/rules/planner.md` §stopping-conditions asks *why the user asked this* —
   answer it with your own judgment context, not the model's guess.
 - The **success criteria** and **claim ledger** sections of the scratchpad
   are where your taste becomes executable: what counts as "good", which

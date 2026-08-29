@@ -17,7 +17,7 @@ python -m compileall deep_research_agent
 ## Ground rules
 
 - Python ≥3.10; stdlib-first. New dependencies need a justification in the PR.
-- Behavior changes to agents belong in `rules/*.md` (runtime-loaded contracts)
+- Behavior changes to agents belong in `deep_research_agent/rules/*.md` (runtime-loaded contracts)
   when possible — prompt-level changes should not require code changes.
 - Every public module docstring states which upstream idea it implements and
   what it does differently.
@@ -34,4 +34,4 @@ python -m compileall deep_research_agent
 - Cost-aware worker routing in wide mode (cheap model first pass, escalate on
   thin outputs).
 - A `--reader-mode internal|external` flag that injects the corresponding
-  writing contract from `rules/source_tiers.md`.
+  writing contract from `deep_research_agent/rules/source_tiers.md`.

@@ -23,4 +23,4 @@ Files in this directory are illustrative samples of the pipeline artifacts:
 - `polished_report.example.md` — the chapter-by-chapter synthesis
 
 The pipeline order matters: recon → fan-out → **code merge** → staged polish.
-See `rules/wide_research_playbook.md` for the protocol.
+See `deep_research_agent/rules/wide_research_playbook.md` for the protocol.

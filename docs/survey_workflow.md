@@ -12,7 +12,7 @@ third-party investigation. Human researchers can follow it directly too.
 Before searching, decide:
 - Why does the requester care? What decision does this inform?
 - Reader mode: internal memo (shared context) or external argument
-  (self-contained)? See `rules/source_tiers.md`.
+  (self-contained)? See `deep_research_agent/rules/source_tiers.md`.
 - Effort class: fact-finding (1 worker, ≤10 tool calls) / comparison
   (2–4 dimensions) / open landscape (wide mode fan-out).
 

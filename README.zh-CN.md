@@ -96,7 +96,7 @@ examples/                   示例运行（deep + wide）
 ## 即使不跑代码也值得读的方法论
 
 - [docs/DESIGN.md](docs/DESIGN.md) — 架构与上游传承关系
-- [rules/source_tiers.md](rules/source_tiers.md) — 激励感知的信源分级、
+- [deep_research_agent/rules/source_tiers.md](deep_research_agent/rules/source_tiers.md) — 激励感知的信源分级、
   claim 台账、读者模式
 - [docs/survey_workflow.md](docs/survey_workflow.md) — 五阶段调研 SOP
 - [docs/memory.md](docs/memory.md) — 用个人上下文突破共识天花板（三层记忆）

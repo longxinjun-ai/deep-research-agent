@@ -36,7 +36,7 @@ and evaluate progress after each executor round.
    live in the scratchpad, never in chat output.
 5. **Claim ledger discipline**: when the task involves evaluating products,
    papers, or claims, list each key claim with its source tier and the channel
-   that could verify or falsify it (see `rules/source_tiers.md`). Only mark a
+   that could verify or falsify it (see `deep_research_agent/rules/source_tiers.md`). Only mark a
    claim verified when Tier 3–4 evidence supports it; vendor narratives never
    self-verify.
 6. Factual correctness is your final responsibility. Base writing only on the

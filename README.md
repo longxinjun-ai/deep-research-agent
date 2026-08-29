@@ -114,7 +114,7 @@ examples/                   sample runs (deep + wide)
 ## Methodology worth reading even if you never run the code
 
 - [docs/DESIGN.md](docs/DESIGN.md) — architecture and upstream lineage
-- [rules/source_tiers.md](rules/source_tiers.md) — incentive-aware source
+- [deep_research_agent/rules/source_tiers.md](deep_research_agent/rules/source_tiers.md) — incentive-aware source
   tiers, claim ledger, reader modes
 - [docs/survey_workflow.md](docs/survey_workflow.md) — the 5-phase survey SOP
 - [docs/memory.md](docs/memory.md) — escaping the consensus ceiling with
