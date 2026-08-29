@@ -1,0 +1,28 @@
+{
+  "subtasks": [
+    {
+      "id": "s01",
+      "title": "Course blogs: student question extraction (batch 1)",
+      "instruction": "Read each blog URL from the index file. For every student, extract name, URL, and the questions they raise, as '### Name (URL)' + title + 2-3 sentence summary. Never invent content — if a blog fails to load twice, record the failure under an 'Errors' heading.",
+      "suggested_queries": ["site:cnblogs.com 软件工程 作业", "软件工程课程 学生博客 问题"]
+    },
+    {
+      "id": "s02",
+      "title": "Course blogs: student question extraction (batch 2)",
+      "instruction": "Same protocol as batch 1, items 28-53 of the index.",
+      "suggested_queries": []
+    },
+    {
+      "id": "s03",
+      "title": "Label taxonomy design from batch summaries",
+      "instruction": "From child_outputs s01+s02, identify recurring themes and design a 8-12 label taxonomy with one-line definitions.",
+      "suggested_queries": []
+    },
+    {
+      "id": "s04",
+      "title": "Label assignment across all articles",
+      "instruction": "Assign exactly 5 taxonomy labels to each article, citing the sentence that justifies each label.",
+      "suggested_queries": []
+    }
+  ]
+}

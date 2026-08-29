@@ -1,0 +1,27 @@
+# Wide Research Aggregate
+
+*Goal:* Course-blogs survey (sample)
+
+*Generated:* 2026-08-29 22:05 · *Sources merged:* 1
+
+---
+
+## s01: Course blogs — batch 1 (illustrative sample output)
+
+### Key Findings
+- 27/27 students processed; names and URLs cross-checked against the index. [index](https://example.edu/index)
+- Dominant cluster (9/27): confusion between "agile" as values vs. as ceremonies. [student blog 3](https://blog.example/3)
+- 6/27 raised testing pyramid misconceptions, echoing each other across cohorts. [student blog 11](https://blog.example/11)
+
+### Evidence & Quotes
+- "We do standups daily, so we are agile" — [student blog 3](https://blog.example/3) (verbatim, translated)
+- "I don't understand why unit tests should outnumber E2E tests" — [student blog 11](https://blog.example/11)
+
+### Open Questions / To-Verify
+- blog.example/19 returned 403 twice despite retry; content summary still missing (documented gap, not dropped silently).
+
+---
+
+## Coverage Gaps
+
+Missing child reports: s02, s03, s04
