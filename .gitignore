@@ -1,0 +1,20 @@
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# secrets
+.env
+*.key
+
+# run artifacts (session outputs are data, not source)
+runs/
+prompts/
+
+# os / editor
+.DS_Store
+.idea/
+.vscode/
