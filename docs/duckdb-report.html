@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DuckDB 项目现状调研 · 2026-08-30</title>
+<style>
+  /* ============ design tokens: 1:1 对齐 yage.ai theme ============ */
+  :root{
+    --font-display:"IBM Plex Sans","Noto Sans SC","PingFang SC",system-ui,sans-serif;
+    --font-body:"IBM Plex Sans","Noto Sans SC","PingFang SC",system-ui,sans-serif;
+    --font-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+    --r-card:8px; --r-chip:5px; --r-btn:6px;
+    --maxw-prose:680px; --maxw-feed:960px; --maxw-wide:1140px;
+    --paper:#f8f9fb; --paper-2:#ffffff; --paper-3:#f2f3f7;
+    --ink:#14161c; --ink-soft:#545b67; --ink-faint:#878e9c;
+    --rule:#e1e4ea; --rule-soft:#edeff3;
+    --accent:#2547e0; --accent-ink:#1f3bc4; --accent-wash:#e3e7fb;
+    --good:#15803d; --good-wash:#e8f5e9;
+    --warn:#b45309; --warn-wash:#fdf3e3;
+    --shadow-soft:0 1px 2px rgba(20,22,30,.04),0 8px 30px rgba(20,22,30,.05);
+    --shadow-lift:0 2px 6px rgba(20,22,30,.07),0 18px 50px rgba(20,22,30,.09);
+  }
+  [data-theme="dark"]{
+    --paper:#0d0f14; --paper-2:#14161d; --paper-3:#191d27;
+    --ink:#e7e9ef; --ink-soft:#9aa2b1; --ink-faint:#6a7280;
+    --rule:#242936; --rule-soft:#191d27;
+    --accent:#8298ff; --accent-ink:#93a5ff; --accent-wash:#171b2e;
+    --good:#5bd48a; --good-wash:#12241a;
+    --warn:#e8b96a; --warn-wash:#2a2013;
+    --shadow-soft:0 1px 2px rgba(0,0,0,.3),0 10px 34px rgba(0,0,0,.4);
+    --shadow-lift:0 2px 8px rgba(0,0,0,.4),0 22px 60px rgba(0,0,0,.5);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+  body{background:var(--paper);color:var(--ink);font-family:var(--font-body);
+       font-size:17px;line-height:1.75;-webkit-font-smoothing:antialiased;
+       text-rendering:optimizeLegibility;font-feature-settings:"kern" 1,"liga" 1,"onum" 1;
+       transition:background-color .45s ease,color .45s ease}
+  ::selection{background:var(--accent);color:#fff}
+  a{color:var(--accent-ink);text-decoration:none}
+  a:hover{text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
+  a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+  .site{min-height:100vh;display:flex;flex-direction:column}
+  .wrap{width:100%;max-width:var(--maxw-wide);margin:0 auto;padding:0 40px}
+  @media(max-width:640px){.wrap{padding:0 20px}}
+
+  /* ============ masthead ============ */
+  .masthead{border-bottom:1px solid var(--rule);position:sticky;top:0;z-index:40;
+            background:color-mix(in srgb,var(--paper) 86%,transparent);
+            backdrop-filter:saturate(1.1) blur(10px)}
+  .masthead-inner{display:flex;align-items:center;gap:24px;padding:14px 0}
+  .brand{display:flex;align-items:center;gap:13px;color:var(--ink)}
+  .brand:hover{text-decoration:none}
+  .seal{width:38px;height:38px;border-radius:9px;border:1.5px solid var(--accent);
+        color:var(--accent);display:grid;place-items:center;background:var(--accent-wash)}
+  .wordmark{display:flex;flex-direction:column;line-height:1}
+  .wordmark .ttl{font-family:var(--font-display);font-weight:600;font-size:18px;letter-spacing:-.3px}
+  .wordmark .ttl em{font-style:normal;color:var(--accent-ink)}
+  .wordmark .sub{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.2em;
+                 text-transform:uppercase;color:var(--ink-faint);margin-top:5px}
+  .nav{margin-left:auto;display:flex;gap:2px}
+  .navlink{font-family:var(--font-mono);font-size:11.5px;letter-spacing:.04em;color:var(--ink-soft);
+           padding:8px 11px;border-radius:var(--r-btn);white-space:nowrap}
+  .navlink:hover{color:var(--ink);background:var(--paper-3);text-decoration:none}
+  .icon-btn{width:44px;height:44px;display:grid;place-items:center;border-radius:var(--r-btn);
+            border:1px solid var(--rule);background:var(--paper-2);color:var(--ink-soft);cursor:pointer}
+  .icon-btn:hover{color:var(--ink);border-color:var(--ink-faint)}
+
+  /* ============ reading layout ============ */
+  .progress{position:fixed;top:0;left:0;height:2px;background:var(--accent);z-index:60;width:0}
+  .reading{display:grid;grid-template-columns:1fr minmax(0,var(--maxw-prose)) 1fr;padding:0 20px}
+  .reading>*{grid-column:2}
+  @media(max-width:900px){.reading{grid-template-columns:1fr}.reading>*{grid-column:1}}
+  .article-head{padding:56px 0 30px;border-bottom:1px solid var(--rule)}
+  .crumb{font-family:var(--font-mono);font-size:12px;color:var(--ink-faint);margin-bottom:16px}
+  .kicker{font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+          color:var(--accent-ink);margin-bottom:14px}
+  .article-head h1{font-family:var(--font-display);font-weight:600;font-size:clamp(27px,3.8vw,40px);
+                   line-height:1.22;letter-spacing:-1px}
+  .byline{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:18px;
+          font-family:var(--font-mono);font-size:12px;color:var(--ink-faint)}
+  .tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:16px}
+  .tag{font-family:var(--font-mono);font-size:12px;padding:6px 13px;border-radius:var(--r-chip);
+       border:1px solid var(--rule);background:var(--paper-2);color:var(--ink-soft)}
+  .prose-body{padding:14px 0 30px}
+  .prose-body h2{font-family:var(--font-display);font-weight:600;font-size:24px;letter-spacing:-.5px;
+                 margin:46px 0 6px;padding-top:10px}
+  .prose-body h2 .no{font-family:var(--font-mono);font-size:13px;color:var(--accent-ink);
+                     margin-right:10px;font-weight:400}
+  .prose-body h3{font-family:var(--font-display);font-weight:600;font-size:17.5px;margin:28px 0 4px}
+  .prose-body p{margin:13px 0;color:var(--ink)}
+  .prose-body li{margin:6px 0}
+  .prose-body ul,.prose-body ol{padding-left:22px;margin:10px 0}
+  .lede-txt{color:var(--ink-soft);font-size:17.5px}
+  code{font-family:var(--font-mono);font-size:.85em;background:var(--paper-3);
+       padding:2px 6px;border-radius:4px}
+  sup a{font-family:var(--font-mono);font-size:11px}
+
+  /* ============ callouts & cards ============ */
+  .tldr{background:var(--accent-wash);border:1px solid color-mix(in srgb,var(--accent) 25%,transparent);
+        border-radius:var(--r-card);padding:20px 24px;margin:26px 0}
+  .tldr .lbl{font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+             color:var(--accent-ink);margin-bottom:8px}
+  .note{border-left:3px solid var(--warn);background:var(--warn-wash);border-radius:0 var(--r-card) var(--r-card) 0;
+        padding:14px 18px;margin:18px 0;font-size:15px;color:var(--ink)}
+  .note .lbl{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+             color:var(--warn);display:block;margin-bottom:4px}
+
+  .statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:22px 0}
+  .stat{background:var(--paper-2);border:1px solid var(--rule);border-radius:var(--r-card);
+        padding:16px 18px;box-shadow:var(--shadow-soft)}
+  .stat .k{font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+           color:var(--ink-faint)}
+  .stat .v{font-family:var(--font-display);font-weight:600;font-size:26px;letter-spacing:-.5px;
+           margin-top:4px;font-variant-numeric:tabular-nums}
+  .stat .s{font-size:12.5px;color:var(--ink-soft);margin-top:2px}
+
+  .verify{background:var(--paper-2);border:1px solid var(--rule);border-radius:var(--r-card);
+          padding:20px 22px;margin:22px 0;box-shadow:var(--shadow-soft)}
+  .verify .row{display:flex;gap:12px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--rule-soft)}
+  .verify .row:last-child{border-bottom:none}
+  .ok-ic{color:var(--good);font-weight:700;flex:0 0 auto;font-family:var(--font-mono)}
+
+  table.claims{width:100%;border-collapse:collapse;font-size:14px;background:var(--paper-2);
+               border:1px solid var(--rule);border-radius:var(--r-card);overflow:hidden;margin:20px 0}
+  table.claims th{font-family:var(--font-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;
+                  text-align:left;padding:11px 14px;color:var(--ink-faint);border-bottom:1px solid var(--rule)}
+  table.claims td{padding:11px 14px;border-bottom:1px solid var(--rule-soft);vertical-align:top;color:var(--ink)}
+  table.claims tr:last-child td{border-bottom:none}
+  .chip{display:inline-block;font-family:var(--font-mono);font-size:11px;padding:2px 9px;border-radius:99px;
+        font-weight:600;white-space:nowrap}
+  .chip.ok{background:var(--good-wash);color:var(--good)}
+  .chip.warn{background:var(--warn-wash);color:var(--warn)}
+  .chip.t4{background:var(--accent-wash);color:var(--accent-ink)}
+
+  .srcs{font-size:13.5px;color:var(--ink-soft)}
+  .srcs li{padding:7px 0;border-bottom:1px solid var(--rule-soft)}
+  .srcs li:last-child{border-bottom:none}
+  .srcs .u{font-family:var(--font-mono);font-size:11.5px;color:var(--ink-faint);word-break:break-all}
+  .article-foot{border-top:1px solid var(--rule);padding:30px 0 60px;
+                font-family:var(--font-mono);font-size:12px;color:var(--ink-faint)}
+
+  .footer{margin-top:auto;border-top:1px solid var(--rule);background:var(--paper-2);padding:38px 0 34px}
+  .footer-inner{display:flex;gap:44px;flex-wrap:wrap;justify-content:space-between;align-items:flex-start}
+  .f-meta{font-family:var(--font-mono);font-size:12px;color:var(--ink-faint);line-height:1.9;max-width:44ch}
+  .f-col h5{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+            color:var(--ink-faint);margin-bottom:10px}
+  .f-col a{display:block;font-family:var(--font-mono);font-size:13px;color:var(--ink-soft);margin-bottom:8px}
+  .f-col a:hover{color:var(--accent-ink)}
+</style>
+</head>
+<body>
+<div class="progress" id="prog"></div>
+<div class="site">
+
+<header class="masthead"><div class="wrap masthead-inner">
+  <a class="brand" href="#top">
+    <span class="seal" aria-hidden="true">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+        <ellipse cx="12" cy="5.5" rx="7.5" ry="3"/><path d="M4.5 5.5v6c0 1.66 3.36 3 7.5 3s7.5-1.34 7.5-3v-6"/>
+        <path d="M4.5 11.5v6c0 1.66 3.36 3 7.5 3s7.5-1.34 7.5-3v-6"/>
+      </svg>
+    </span>
+    <span class="wordmark">
+      <span class="ttl">DuckDB <em>现状调研</em></span>
+      <span class="sub">Deep Research Report</span>
+    </span>
+  </a>
+  <nav class="nav">
+    <a class="navlink" href="#ver">版本</a>
+    <a class="navlink" href="#feat">特性</a>
+    <a class="navlink" href="#community">社区</a>
+    <a class="navlink" href="#method">方法</a>
+    <a class="navlink" href="#optimize">优化分析</a>
+    <a class="navlink" href="#sources">来源</a>
+  </nav>
+  <button class="icon-btn" id="themeToggle" title="切换明暗主题" aria-label="切换主题">◐</button>
+</div></header>
+
+<main class="reading" id="top">
+
+<header class="article-head">
+  <div class="crumb">runs/20260830-092141 · deep mode · planner⇄executor ×2</div>
+  <div class="kicker">Agentic Research · 自动生成</div>
+  <h1>调研 DuckDB 项目现状：最新稳定版、核心特性、社区健康度</h1>
+  <div class="byline">
+    <span>执行模型 GLM-5.3-Flash</span><span>·</span>
+    <span>42 次 LLM 调用</span><span>·</span>
+    <span>33 个信源缓存</span><span>·</span>
+    <span>约 19 分钟</span><span>·</span>
+    <span>数据截至 2026-08-30</span>
+  </div>
+  <div class="tags">
+    <span class="tag">调研</span><span class="tag">DuckDB</span><span class="tag">嵌入式数据库</span>
+    <span class="tag">开源项目健康度</span>
+  </div>
+</header>
+
+<article class="prose-body">
+
+  <div class="tldr">
+    <div class="lbl">TL;DR</div>
+    <p style="margin:0">截至 2026-08-30，DuckDB 最新稳定版为 <b>v1.5.5</b>（2026-07-22，三信源交叉验证），
+    处于 1.5 "Variegata" 线的第六个补丁版；<b>v2.0 预览已公布、定档 2026 秋</b>。
+    项目呈高活跃 + 巨量采用：40.8k stars、近 90 天合并 1,149 个 PR、Python 包月下载 6,433 万。
+    官方 8 月 26 日宣布 DuckLabs 加入 AWS（厂商叙事，未独立验证）。</p>
+  </div>
+
+  <h2 id="ver"><span class="no">01</span>最新稳定版：v1.5.5</h2>
+  <p class="lede-txt">版本主张是典型的"必须防幻觉"事实——报告用三个独立信源交叉验证后才落笔。</p>
+
+  <div class="verify">
+    <div class="row"><span class="ok-ic">✓</span>
+      <div><b>GitHub Releases API</b>：tag <code>v1.5.5</code>，published 2026-07-22，
+      <code>prerelease:false</code>、<code>draft:false</code>（即稳定版，非预发布）<sup><a href="#s1">[1]</a></sup></div></div>
+    <div class="row"><span class="ok-ic">✓</span>
+      <div><b>duckdb.org 发布日历</b>：列出 "2026-07-22 | 1.5.5"；并预告 1.5.6（2026-09-16）与 2.0.0（2026 秋）<sup><a href="#s2">[2]</a></sup></div></div>
+    <div class="row"><span class="ok-ic">✓</span>
+      <div><b>官方公告《Announcing DuckDB 1.5.5》</b>（2026-07-22）：定性为 bugfix 发布<sup><a href="#s3">[3]</a></sup></div></div>
+  </div>
+
+  <p>v1.5.5 的关键修复包括：128 位 DECIMAL 在多行组 RETURN_STATS 下 min/max 交换的正确性修复
+  （#23693）、多起崩溃/死锁/越界读修复（#23351、#23861）、v1.5.0+ 存储启用 ALP/ALP_RD 压缩
+  （更小块体积，#23483）、ADBC 改进（<code>duckdb://</code> URI、Statistics API）<sup><a href="#s3">[3]</a></sup><sup><a href="#s8">[8]</a></sup>。</p>
+
+  <div class="note"><span class="lbl">向前看 · v2.0 预览（2026-08-17）</span>
+    官方预览列出：DuckDB as a server、触发器、VARIANT 类型、异步 I/O、新 SQL 解析器、新存储格式；
+    Quack 客户端/服务端协议转正并引入 <code>CONNECT</code> 语句。v2.0 由 v1.5 以来超过
+    <b>10,000 次提交</b>构建<sup><a href="#s5">[5]</a></sup>。</div>
+
+  <h2 id="feat"><span class="no">02</span>核心特性：1.5 "Variegata"（v1.5.0，2026-03-09）</h2>
+  <ul>
+    <li><b>重做 CLI 客户端</b>——新配色、显示当前库/Schema 的动态提示符、超 50 行结果分页、<code>_</code> 引用上次结果</li>
+    <li><b>原生 VARIANT 类型</b>——类型化二进制半结构化存储（区别于文本承载的 JSON），配套
+        <code>variant_typeof</code>/<code>variant_extract</code>，Parquet VARIANT 支持（含 shredding）</li>
+    <li><b>内置 GEOMETRY 类型</b></li>
+    <li><b>实验性 PEG 解析器</b>——更好的补全与报错、可被扩展的语法；官方计划"下一个版本"转默认</li>
+    <li><b>生态与网络</b>——<code>httpfs</code> 切换 curl 后端；DuckLake spec v0.4、Delta/Unity 写入改进、
+        Iceberg CREATE TABLE 属性；新增 <code>read_duckdb</code>；Azure 写入；ODBC scanner 扩展<sup><a href="#s4">[4]</a></sup></li>
+  </ul>
+
+  <h2 id="community"><span class="no">03</span>社区健康度（均测于 2026-08-30）</h2>
+
+  <div class="statgrid">
+    <div class="stat"><div class="k">GitHub Stars</div><div class="v">40,802</div><div class="s">forks 3,657</div></div>
+    <div class="stat"><div class="k">PR 合并 / 近 90 天</div><div class="v">1,149</div><div class="s">近 30 天 361</div></div>
+    <div class="stat"><div class="k">PyPI 月下载</div><div class="v">6,433 万</div><div class="s">duckdb · 30 天窗口</div></div>
+    <div class="stat"><div class="k">npm 月下载</div><div class="v">705 万</div><div class="s">node-api 510 万 + wasm 195 万</div></div>
+  </div>
+
+  <p>三个信号的口径与注意点<sup><a href="#s9">[9]</a></sup><sup><a href="#s10">[10]</a></sup><sup><a href="#s11">[11]</a></sup>：</p>
+  <ol>
+    <li><b>GitHub 规模与活跃</b>：844 个开启的 issue+PR；2026-06-01 以来新增 563 个 issue；
+        最后一次 push 为 2026-08-28。GitHub 搜索计数按索引日期取值，<b>视为近似值</b>。</li>
+    <li><b>Python 采用</b>：pypistats.org 报告最近 30 天 64,334,992 次下载（CDN/镜像口径警告适用）。</li>
+    <li><b>JavaScript 采用</b>：2026-07-30 → 08-28 窗口，<code>@duckdb/node-api</code> 5,102,410、
+        <code>@duckdb/duckdb-wasm</code> 1,945,614。</li>
+  </ol>
+
+  <div class="note"><span class="lbl">Tier 1 · 厂商叙事，未独立验证</span>
+    项目官方博客 2026-08-26 宣布 <b>DuckLabs 将加入 AWS</b>，称项目在 DuckDB Foundation 下保持
+    MIT 开源<sup><a href="#s6">[6]</a></sup>。此为利益相关方单方声明，报告按信源分级规则单独标注，
+    不作为已验证事实呈现。</div>
+
+  <h2 id="method"><span class="no">04</span>方法与可信度</h2>
+  <p>本次调研由 deep-research-agent（deep 模式）自动执行：planner 在 scratchpad 写下
+  "最新版本必须来自实时官方信源、内存中的版本号默认存疑"的约束；executor 两轮采集
+  （版本事实 → 社区信号），planner 汇总成稿。关键主张的信源分级如下：</p>
+
+  <table class="claims">
+    <tr><th>主张</th><th>信源</th><th>验证状态</th></tr>
+    <tr><td>v1.5.5 为最新稳定版（2026-07-22）</td><td><span class="chip t4">Tier 4</span> GitHub API + 官方日历/公告</td>
+        <td><span class="chip ok">verified · 3 信源一致</span></td></tr>
+    <tr><td>stars 40,802 / forks 3,657</td><td><span class="chip t4">Tier 4</span> GitHub API（+repo 页佐证）</td>
+        <td><span class="chip ok">verified</span></td></tr>
+    <tr><td>PyPI 月下载 6,433 万</td><td><span class="chip t4">Tier 4</span> pypistats API</td>
+        <td><span class="chip ok">verified · 口径近似</span></td></tr>
+    <tr><td>DuckLabs 加入 AWS、保持开源</td><td><span class="chip warn">Tier 1</span> 官方博客单方声明</td>
+        <td><span class="chip warn">厂商叙事 · 待独立信源</span></td></tr>
+    <tr><td>v2.0 将于 2026 秋发布</td><td><span class="chip warn">Tier 1</span> 官方预览/日历</td>
+        <td><span class="chip warn">计划而非事实</span></td></tr>
+  </table>
+
+  <h2 id="optimize"><span class="no">05</span>优化分析：这次任务还能怎么做得更好</h2>
+  <p class="lede-txt">把报告从 markdown 变成这个页面的过程中，对照 yage.ai 的呈现标准，发现四类可优化点。</p>
+
+  <h3>呈现层（本页已实施的改进）</h3>
+  <ul>
+    <li><b>关键数字前置</b>：原报告的 stars/下载量埋在段落里，现在提为统计卡——yage.ai 风格的
+        "最有用的判断放前几段"（external mode 写作契约）</li>
+    <li><b>可信度可视化</b>：交叉验证卡片 + claim 状态表，让"哪些是事实、哪些是厂商叙事"一眼可辨</li>
+    <li><b>阅读进度条、明暗主题、跳转导航</b>：长报告的可读性基建</li>
+    <li><b>口径透明</b>：GitHub 搜索计数"按索引日期、视为近似"这类限定直接随数字呈现，不放脚注</li>
+  </ul>
+
+  <h3>内容层（下次调研应补齐）</h3>
+  <ul>
+    <li><b>缺时间维度</b>：所有数字是单点快照。stars/下载的月度曲线才能回答"健康度在变好还是变坏"——
+        需要对 GitHub Archive / pypistats 历史端点做趋势采样，单次 deep 模式覆盖不到，适合 wide 模式子任务</li>
+    <li><b>缺对比锚点</b>：月下载 6,433 万没有参照系（同期 polars/SQLite 如何？），数字大 ≠ 采用领先</li>
+    <li><b>缺 Tier 4 采用叙事</b>："adoption"目前只有包管理器行为，没有生产迁移故事/post-mortem——
+        恰恰是信源分级里最强的证据层</li>
+    <li><b>信源 #13 经 r.jina.ai 代理访问</b>：应在报告中显式标注代理路径（透明度），理想情况下直接访问</li>
+  </ul>
+
+  <h3>工作流层（agent 本身的优化项）</h3>
+  <ul>
+    <li><b>上下文成本</b>：executor 34 次调用累计 95.5 万输入 token——消息历史滚动重读所致。
+        可引入"搜索结果即时摘要落盘 + 历史截断"，预计砍掉一半以上输入量</li>
+    <li><b>趋势类任务路由</b>：涉及多实体/多时间片的任务应自动建议 wide 模式，目前要人工指定</li>
+    <li><b>报告模板化</b>：让 planner 产出时直接携带 stat 卡/claim 表的语义结构（而非纯 markdown），
+        呈现层就无需二次解析</li>
+  </ul>
+
+  <h2 id="sources"><span class="no">06</span>来源</h2>
+  <p style="font-size:13px;color:var(--ink-faint)">全部 URL 检索于 2026-08-30。</p>
+  <ol class="srcs">
+    <li id="s1">GitHub API — latest release · <span class="u">https://api.github.com/repos/duckdb/duckdb/releases/latest</span></li>
+    <li id="s2">duckdb.org — Release Calendar · <span class="u">https://duckdb.org/release_calendar</span></li>
+    <li id="s3">Announcing DuckDB 1.5.5（2026-07-22）· <span class="u">https://duckdb.org/2026/07/22/announcing-duckdb-155</span></li>
+    <li id="s4">Announcing DuckDB 1.5.0（2026-03-09）· <span class="u">https://duckdb.org/2026/03/09/announcing-duckdb-150</span></li>
+    <li id="s5">DuckDB v2.0 highlights 预览（2026-08-17）· <span class="u">https://duckdb.org/2026/08/17/duckdb-20-highlights</span></li>
+    <li id="s6">DuckLabs to join AWS（2026-08-26，厂商叙事）· <span class="u">https://duckdb.org/2026/08/26/ducklabs-to-join-aws</span></li>
+    <li id="s7">GitHub API — repo 元数据 · <span class="u">https://api.github.com/repos/duckdb/duckdb</span></li>
+    <li id="s8">GitHub — v1.5.5 release notes · <span class="u">https://github.com/duckdb/duckdb/releases/tag/v1.5.5</span></li>
+    <li id="s9">GitHub Search API（计数按索引日期）· <span class="u">https://api.github.com/search/issues?q=repo:duckdb/duckdb+type:pr+merged:&gt;2026-05-31</span></li>
+    <li id="s10">pypistats.org — duckdb recent · <span class="u">https://pypistats.org/api/packages/duckdb/recent</span></li>
+    <li id="s11">npm registry — node-api / duckdb-wasm last-month · <span class="u">https://api.npmjs.org/downloads/point/last-month/@duckdb/node-api</span></li>
+    <li id="s13">duckdb/duckdb repo 页（佐证 stars/forks，经 r.jina.ai 代理）· <span class="u">https://github.com/duckdb/duckdb</span></li>
+  </ol>
+
+</article>
+
+<footer class="article-foot">
+  <p>本页由 deep-research-agent 产出报告渲染 · 会话 runs/20260830-092141 · 呈现风格对齐 yage.ai 主题</p>
+  <p>独立抽查记录：版本 v1.5.5 与 stars 数经第三方复核一致（±1，时点差异）</p>
+</footer>
+
+</main>
+
+<footer class="footer"><div class="wrap footer-inner">
+  <div class="f-meta">
+    Generated by deep-research-agent v0.1.0<br>
+    planner⇄executor · GLM-5.3-Flash · 42 calls · ~19 min<br>
+    https://github.com/longxinjun-ai/deep-research-agent
+  </div>
+  <div class="f-col">
+    <h5>Report</h5>
+    <a href="#ver">版本</a><a href="#feat">特性</a><a href="#community">社区</a><a href="#sources">来源</a>
+  </div>
+  <div class="f-col">
+    <h5>Methodology</h5>
+    <a href="../../deep_research_agent/rules/source_tiers.md">信源分级规则</a>
+    <a href="../yage-methodology-map.html">方法论图谱</a>
+    <a href="https://yage.ai/">yage.ai</a>
+  </div>
+</div></footer>
+
+</div>
+
+<script>
+// theme: respect system preference, persist choice
+const root=document.documentElement, btn=document.getElementById('themeToggle');
+const saved=localStorage.getItem('dra-theme');
+if(saved){root.dataset.theme=saved}
+else if(matchMedia('(prefers-color-scheme: dark)').matches){root.dataset.theme='dark'}
+btn.addEventListener('click',()=>{
+  const next=root.dataset.theme==='dark'?'light':'dark';
+  root.dataset.theme=next;localStorage.setItem('dra-theme',next);
+});
+// reading progress
+const prog=document.getElementById('prog');
+addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  prog.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+},{passive:true});
+</script>
+</body>
+</html>
