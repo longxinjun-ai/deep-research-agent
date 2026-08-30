@@ -43,9 +43,11 @@ MAX_STEPS = 40  # planner tool-call steps per round
 
 
 class PlannerAgent:
-    def __init__(self, spec: ModelSpec, rules_path: Path, tracker: TokenTracker):
+    def __init__(self, spec: ModelSpec, rules_path: Path, tracker: TokenTracker,
+                 session_dir: Path | None = None):
         self.spec = spec
         self.tracker = tracker
+        self.session_dir = session_dir
         self.rules = Path(rules_path).read_text(encoding="utf-8")
         today = datetime.now().strftime("%Y-%m-%d")
         self.system_prompt = (f"{self.rules}\n\nToday's date is {today}. Factor this "
@@ -88,7 +90,7 @@ class PlannerAgent:
                 filename, body = args.get("filename", ""), args.get("content", "")
                 try:
                     from ..tools import files as file_tools
-                    result = file_tools.create_file(filename, body)
+                    result = file_tools.create_file(filename, body, self.session_dir)
                 except Exception as e:  # noqa: BLE001
                     result = f"[error creating file: {e}]"
                 if "scratchpad" in filename:

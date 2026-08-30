@@ -49,7 +49,8 @@ class Orchestrator:
         scratchpad.append("Background and Motivation", f"Initial research query: {query}",
                           "Planner")
 
-        planner = PlannerAgent(self.cfg.planner, self.rules_dir / "planner.md", self.tracker)
+        planner = PlannerAgent(self.cfg.planner, self.rules_dir / "planner.md",
+                               self.tracker, session_dir=session.path)
         executor = ExecutorAgent(self.cfg.executor, self.rules_dir / "executor.md",
                                  self.tracker, session.path, self.cfg.auto_approve)
 
@@ -60,8 +61,11 @@ class Orchestrator:
             logger.info("[round %d] planner -> %s", round_no, marker)
 
             if marker == "TASK_COMPLETE":
-                feedback = input("\nTask complete. Additional feedback, Enter to accept, "
-                                 "'q' to quit: ").strip()
+                try:
+                    feedback = input("\nTask complete. Additional feedback, Enter to accept, "
+                                     "'q' to quit: ").strip()
+                except EOFError:  # headless run: no interactive user present
+                    feedback = ""
                 if feedback.lower() == "q" or not feedback:
                     scratchpad.append("Current Status / Progress Tracking",
                                       "Task completed and confirmed by user", "Planner")
