@@ -85,4 +85,9 @@ with tempfile.TemporaryDirectory() as td:
     check("aggregation preserves citations verbatim", "[src](https://a.b)" in text)
     check("aggregation flags coverage gaps", "s02" in text and "Coverage Gaps" in text)
 
+    # --- regression guard: wide workers must be given the tool definitions ---
+    src = (Path(__file__).parent.parent / "deep_research_agent" / "wide.py").read_text()
+    check("wide workers pass TOOL_DEFINITIONS to chat()",
+          "chat(cfg.researcher, messages, TOOL_DEFINITIONS" in src)
+
 print(f"\nAll {ok} checks passed.")

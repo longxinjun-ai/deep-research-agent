@@ -29,7 +29,7 @@ from pathlib import Path
 from .config import Config
 from .llm import chat
 from .session import Session
-from .tools import build_dispatcher
+from .tools import TOOL_DEFINITIONS, build_dispatcher
 from .usage import TokenTracker
 
 logger = logging.getLogger(__name__)
@@ -102,7 +102,7 @@ def _run_child(subtask: dict, cfg: Config, tracker: TokenTracker,
     for _ in range(3):  # whole-child retry
         done = False
         for _ in range(14):
-            content, tool_calls, _ = chat(cfg.researcher, messages,
+            content, tool_calls, _ = chat(cfg.researcher, messages, TOOL_DEFINITIONS,
                                           role=f"worker-{sub_id}", tracker=tracker)
             if content and "TASK_COMPLETED" in content:
                 done = True
