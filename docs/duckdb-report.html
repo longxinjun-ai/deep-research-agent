@@ -173,6 +173,7 @@
     <a class="navlink" href="#community">社区</a>
     <a class="navlink" href="#method">方法</a>
     <a class="navlink" href="#optimize">优化分析</a>
+    <a class="navlink" href="#anchors">锚点</a>
     <a class="navlink" href="#sources">来源</a>
   </nav>
   <button class="icon-btn" id="themeToggle" title="切换明暗主题" aria-label="切换主题">◐</button>
@@ -298,7 +299,8 @@
   <ul>
     <li><b>缺时间维度</b>：所有数字是单点快照。stars/下载的月度曲线才能回答"健康度在变好还是变坏"——
         需要对 GitHub Archive / pypistats 历史端点做趋势采样，单次 deep 模式覆盖不到，适合 wide 模式子任务</li>
-    <li><b>缺对比锚点</b>：月下载 6,433 万没有参照系（同期 polars/SQLite 如何？），数字大 ≠ 采用领先</li>
+    <li><b>缺对比锚点</b>：月下载 6,433 万没有参照系（同期 polars/SQLite 如何？），数字大 ≠ 采用领先
+        —— <b>已补齐，见 §06</b></li>
     <li><b>缺 Tier 4 采用叙事</b>："adoption"目前只有包管理器行为，没有生产迁移故事/post-mortem——
         恰恰是信源分级里最强的证据层</li>
     <li><b>信源 #13 经 r.jina.ai 代理访问</b>：应在报告中显式标注代理路径（透明度），理想情况下直接访问</li>
@@ -313,7 +315,60 @@
         呈现层就无需二次解析</li>
   </ul>
 
-  <h2 id="sources"><span class="no">06</span>来源</h2>
+  <h2 id="anchors"><span class="no">06</span>趋势与锚点：放进四引擎坐标系再看 DuckDB</h2>
+  <p class="lede-txt">单独看"DuckDB 月下载 6,433 万"没有参照系。本节用 wide 模式扇出的 4 个采集子任务
+  + GitHub API 直接采集，把 DuckDB 放进 DuckDB / Polars / ClickHouse / SQLite 四引擎坐标系。
+  所有数据截至 2026-08-30，口径逐项标注——<b>四者口径互不可比，恰恰是本节的核心发现之一</b>。</p>
+
+  <div class="fig" style="padding:14px">
+  <svg viewBox="0 0 720 240" width="100%" role="img" aria-label="PyPI 月下载对比条形图">
+    <g font-size="12.5" fill="#545b67">
+      <text x="150" y="36" text-anchor="end" font-weight="600" fill="#14161c">Polars (python 包)</text>
+      <rect x="160" y="20" width="440" height="20" rx="4" fill="#8298ff" opacity=".55"/>
+      <text x="612" y="35" fill="#14161c" font-weight="600">72.2M</text>
+      <text x="150" y="76" text-anchor="end" font-weight="600" fill="#14161c">DuckDB</text>
+      <rect x="160" y="60" width="392" height="20" rx="4" fill="#2547e0"/>
+      <text x="564" y="75" fill="#14161c" font-weight="600">64.3M</text>
+      <text x="150" y="116" text-anchor="end" font-weight="600" fill="#14161c">better-sqlite3 (代理)</text>
+      <rect x="160" y="100" width="272" height="20" rx="4" fill="#8298ff" opacity=".55"/>
+      <text x="444" y="115" fill="#14161c" font-weight="600">39.8M</text>
+      <text x="150" y="156" text-anchor="end" font-weight="600" fill="#14161c">CH 客户端合计 (代理)</text>
+      <rect x="160" y="140" width="307" height="20" rx="4" fill="#8298ff" opacity=".55"/>
+      <text x="479" y="155" fill="#14161c" font-weight="600">50.5M</text>
+      <text x="150" y="196" text-anchor="end" font-weight="600" fill="#14161c">DuckDB npm 合计</text>
+      <rect x="160" y="180" width="43" height="20" rx="4" fill="#2547e0"/>
+      <text x="215" y="195" fill="#14161c" font-weight="600">7.0M</text>
+    </g>
+    <text x="160" y="226" font-size="11.5" fill="#878e9c">PyPI/npm 月下载（滚动 30 天，without_mirrors；深蓝 = DuckDB 官方渠道）· 数值含口径差异，不可直接排名</text>
+  </svg>
+  </div>
+
+  <table class="claims">
+    <tr><th>引擎</th><th>一句话定位</th><th>包管理器月下载（口径）</th><th>GitHub stars</th></tr>
+    <tr><td>DuckDB</td><td>进程内分析型 SQL（OLAP "SQLite 体验"）</td>
+        <td>PyPI 64.33M（滚动30天，without_mirrors）；npm node-api 5.10M + wasm 1.95M</td><td>40,805</td></tr>
+    <tr><td>Polars</td><td>Rust 内核的 DataFrame（pandas 替代）</td>
+        <td>PyPI 72.24M（同上口径）；nodejs-polars 1.00M；crates.io 未计</td><td>39,546</td></tr>
+    <tr><td>ClickHouse</td><td>服务端列式 OLAP 数据库</td>
+        <td><b>客户端库代理</b>：clickhouse-connect 31.02M + clickhouse-driver 19.50M（服务端本体不经 PyPI 分发）</td><td>49,525</td></tr>
+    <tr><td>SQLite</td><td>世界上部署量最大的嵌入式数据库（stdlib 内置）</td>
+        <td><b>本体不可量化</b>——官方不分发、不计数，仅有定性声明"数十亿副本"；npm 代理：better-sqlite3 39.76M + sqlite3 10.77M</td><td>10,365 <span style="font-size:12px;color:#878e9c">(GitHub 镜像)</span></td></tr>
+  </table>
+
+  <h3>三个修正直觉的发现</h3>
+  <ol>
+    <li><b>"DuckDB 下载量惊人"需要锚点修正</b>：Polars 的 Python 包月下载（72.2M）实际<b>高于</b> DuckDB
+        （64.3M）。DuckDB 的增长叙事成立，但"Python 分析引擎里一骑绝尘"不成立。</li>
+    <li><b>跨引擎数字不可直接排名</b>：ClickHouse 的 PyPI 数字只是客户端库（服务端经自有仓库/docker 分发）；
+        SQLite 本体随数十亿设备分发、完全没有包管理器口径；DuckDB npm 生态里 node-api 与 node-bindings
+        数字高度重合（同一安装同时拉取），<b>相加即双计</b>。子任务甚至纠正了任务书里的包名错误
+        （<code>@duckdb/duckdb</code> 不存在，官方包为 <code>@duckdb/node-api</code>）。</li>
+    <li><b>执行过程本身是一个诚实性案例</b>：8 个扇出子任务中 4 个完成、4 个因 API 余额耗尽失败——
+        失败被流水线如实标注进聚合报告的 Coverage Gaps 而非静默丢弃（wide-research 的"失败不静默"设计按预期工作）。
+        GitHub 活跃度横切（失败子任务的范围）由本页直接调 GitHub API 补齐。</li>
+  </ol>
+
+  <h2 id="sources"><span class="no">07</span>来源</h2>
   <p style="font-size:13px;color:var(--ink-faint)">全部 URL 检索于 2026-08-30。</p>
   <ol class="srcs">
     <li id="s1">GitHub API — latest release · <span class="u">https://api.github.com/repos/duckdb/duckdb/releases/latest</span></li>
@@ -328,6 +383,9 @@
     <li id="s10">pypistats.org — duckdb recent · <span class="u">https://pypistats.org/api/packages/duckdb/recent</span></li>
     <li id="s11">npm registry — node-api / duckdb-wasm last-month · <span class="u">https://api.npmjs.org/downloads/point/last-month/@duckdb/node-api</span></li>
     <li id="s13">duckdb/duckdb repo 页（佐证 stars/forks，经 r.jina.ai 代理）· <span class="u">https://github.com/duckdb/duckdb</span></li>
+    <li id="s14">wide 模式子任务采集（2026-08-30）：pypistats polars / clickhouse-connect / clickhouse-driver ·
+        npm nodejs-polars / better-sqlite3 / sqlite3 · sqlite.org/mostdeployed.html（官方定性口径）·
+        GitHub API 四仓库快照 · 详见 runs/20260830-103159 wide 会话工件</li>
   </ol>
 
 </article>
