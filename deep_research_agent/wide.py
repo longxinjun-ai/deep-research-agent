@@ -86,7 +86,7 @@ def plan_manifest(goal: str, cfg: Config, tracker: TokenTracker,
 def _run_child(subtask: dict, cfg: Config, tracker: TokenTracker,
                session: Session) -> str:
     sub_id = subtask["id"]
-    out_file = f"{subtask['id']}.md"
+    out_file = f"child_outputs/{subtask['id']}.md"
     queries = "\n".join(f"- {q}" for q in subtask.get("suggested_queries", []))
     user_prompt = (f"Subtask {sub_id}: {subtask['title']}\n\n"
                    f"Instruction: {subtask['instruction']}\n"

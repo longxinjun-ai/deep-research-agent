@@ -13,6 +13,7 @@ PRICES: dict[str, tuple[float, float]] = {
     "claude-sonnet-4-20250514": (3.0, 15.0),
     "deepseek-chat": (0.27, 1.1),
     "glm-4.5": (0.6, 2.2),
+    "glm-5.3-flash": (0.05, 0.2),  # approximate; bigmodel flash tier is near-free
 }
 DEFAULT_PRICE = (1.0, 3.0)
 
