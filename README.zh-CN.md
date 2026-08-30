@@ -95,6 +95,9 @@ examples/                   示例运行（deep + wide）
 
 ## 即使不跑代码也值得读的方法论
 
+- [docs/yage-methodology-map.html](docs/yage-methodology-map.html) — **可视化
+  方法论图谱**（共识天花板、宽研究、三层记忆、信源分级 → 本仓库实现映射）
+- [docs/yage-methodology.md](docs/yage-methodology.md) — 图谱的文字版沉淀笔记
 - [docs/DESIGN.md](docs/DESIGN.md) — 架构与上游传承关系
 - [deep_research_agent/rules/source_tiers.md](deep_research_agent/rules/source_tiers.md) — 激励感知的信源分级、
   claim 台账、读者模式

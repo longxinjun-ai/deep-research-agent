@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 研究方法论图谱 · 基于 yage.ai</title>
+<style>
+  :root{
+    --ink:#1a2332; --ink-soft:#4a5568; --ink-faint:#8b95a5;
+    --paper:#faf9f6; --card:#ffffff; --line:#e6e3db;
+    --accent:#0d7a6f; --accent-soft:#e3f2ef;
+    --warn:#b45309; --warn-soft:#fdf3e3;
+    --bad:#b91c1c; --bad-soft:#fdeaea;
+    --good:#15803d; --good-soft:#e8f5e9;
+    --code:#f4f2ec;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+       background:var(--paper);color:var(--ink);line-height:1.75;font-size:16px}
+  a{color:var(--accent);text-decoration:none;border-bottom:1px dashed rgba(13,122,111,.4)}
+  a:hover{border-bottom-style:solid}
+
+  /* ---------- nav ---------- */
+  nav{position:sticky;top:0;z-index:50;background:rgba(250,249,246,.92);backdrop-filter:blur(8px);
+      border-bottom:1px solid var(--line);padding:0 max(16px,calc(50vw - 520px))}
+  nav .inner{max-width:1040px;margin:0 auto;display:flex;align-items:center;gap:4px;height:52px;overflow-x:auto}
+  nav .brand{font-weight:700;color:var(--ink);white-space:nowrap;margin-right:12px;border:none}
+  nav a.item{white-space:nowrap;color:var(--ink-soft);font-size:14px;padding:6px 10px;border-radius:6px;border:none}
+  nav a.item:hover{background:var(--accent-soft);color:var(--accent)}
+  nav a.item.active{background:var(--accent);color:#fff}
+
+  /* ---------- layout ---------- */
+  main{max-width:1040px;margin:0 auto;padding:0 24px 80px}
+  section{padding-top:72px;margin-top:-52px}
+  h2{font-size:26px;margin-bottom:6px;display:flex;align-items:baseline;gap:12px}
+  h2 .no{font-size:14px;color:var(--ink-faint);font-weight:600;letter-spacing:.1em}
+  .lede{color:var(--ink-soft);margin-bottom:28px;max-width:760px}
+  h3{font-size:18px;margin:26px 0 10px}
+  p{margin:10px 0}
+  .cards{display:grid;gap:16px}
+  .cards.c2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+  .cards.c3{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px}
+  .card h4{font-size:15.5px;margin-bottom:8px}
+  .card p,.card li{font-size:14px;color:var(--ink-soft)}
+  .card ul{padding-left:18px;margin:6px 0}
+  .tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:99px;margin:0 6px 6px 0;font-weight:600}
+  .tag.t1{background:#eef2ff;color:#4338ca}.tag.t2{background:#fdf3e3;color:#b45309}
+  .tag.t3{background:#f1f5f9;color:#475569}.tag.t4{background:var(--good-soft);color:var(--good)}
+  .quote{border-left:3px solid var(--accent);background:var(--accent-soft);
+         padding:14px 18px;border-radius:0 8px 8px 0;margin:16px 0;font-size:14.5px;color:var(--ink)}
+  .quote .who{display:block;margin-top:6px;font-size:12.5px;color:var(--ink-faint)}
+  code{background:var(--code);padding:1px 6px;border-radius:4px;font-size:13.5px;font-family:ui-monospace,"SF Mono",Menlo,monospace}
+  .fig{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin:18px 0;overflow-x:auto}
+  .fig figcaption{font-size:13px;color:var(--ink-faint);margin-top:8px;text-align:center}
+  svg text{font-family:inherit}
+
+  /* ---------- hero ---------- */
+  header.hero{padding:64px 0 8px}
+  .hero .kicker{color:var(--accent);font-weight:700;letter-spacing:.15em;font-size:13px;text-transform:uppercase}
+  .hero h1{font-size:clamp(28px,4.5vw,42px);line-height:1.25;margin:10px 0 14px}
+  .hero p.sub{color:var(--ink-soft);font-size:17px;max-width:720px}
+  .hero .meta{margin-top:22px;display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--ink-faint)}
+  .hero .meta span{background:var(--card);border:1px solid var(--line);padding:4px 12px;border-radius:99px}
+
+  /* comparison bars */
+  .bars{display:flex;flex-direction:column;gap:9px;margin:14px 4px}
+  .bar{display:grid;grid-template-columns:150px 1fr 56px;align-items:center;gap:10px;font-size:13.5px}
+  .bar .name{text-align:right;color:var(--ink-soft)}
+  .bar .track{background:#f0eee7;border-radius:99px;height:20px;overflow:hidden}
+  .bar .fill{height:100%;border-radius:99px;background:var(--ink-faint);min-width:2px}
+  .bar.ok .fill{background:var(--accent)}
+  .bar .val{color:var(--ink-soft);font-variant-numeric:tabular-nums}
+  @media(max-width:640px){.bar{grid-template-columns:104px 1fr 48px;font-size:12.5px}}
+
+  table.map{width:100%;border-collapse:collapse;font-size:14px;background:var(--card);
+            border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  table.map th{background:var(--accent-soft);text-align:left;padding:10px 14px;font-size:13px;color:var(--accent)}
+  table.map td{padding:10px 14px;border-top:1px solid var(--line);color:var(--ink-soft);vertical-align:top}
+  table.map td:first-child{color:var(--ink);font-weight:600;white-space:nowrap}
+
+  footer{border-top:1px solid var(--line);margin-top:72px;padding:28px 0;color:var(--ink-faint);font-size:13.5px}
+  footer p{margin:4px 0}
+  .legend{display:flex;gap:16px;font-size:12.5px;color:var(--ink-faint);margin:4px 4px 0;flex-wrap:wrap}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+</style>
+</head>
+<body>
+
+<nav><div class="inner">
+  <span class="brand">yage.ai 方法论图谱</span>
+  <a class="item" href="#s1">共识天花板</a>
+  <a class="item" href="#s2">宽研究</a>
+  <a class="item" href="#s3">三层记忆</a>
+  <a class="item" href="#s4">信源分级</a>
+  <a class="item" href="#s5">实现映射</a>
+  <a class="item" href="#s6">行动清单</a>
+</div></nav>
+
+<main>
+
+<header class="hero">
+  <div class="kicker">Knowledge Map · 沉淀自 yage.ai</div>
+  <h1>为什么 AI 只会说"正确的废话"，<br>以及把它逼出舒适区的系统方法</h1>
+  <p class="sub">这不是模型评测，而是一套完整的<b>研究基础设施方法论</b>：共识天花板诊断 → 宽研究编排 →
+  三层个人记忆 → 激励感知验证。下图谱沉淀自鸭哥（Yan Wang / grapeot）在 yage.ai 的写作与三个开源项目，
+  并标注了在 deep-research-agent 仓库中的对应实现。</p>
+  <div class="meta">
+    <span>来源 yage.ai（Computing Life）</span><span>整理于 2026-08-30</span>
+    <span>实现 <a href="https://github.com/longxinjun-ai/deep-research-agent">longxinjun-ai/deep-research-agent</a></span>
+  </div>
+</header>
+
+<!-- ================================================================ -->
+<section id="s1">
+  <h2><span class="no">01</span>共识天花板：正确的废话从哪来</h2>
+  <p class="lede">LLM 的默认输出是"共识"——多数人会同意的话。这由训练机制决定，不随模型升级而消失。</p>
+
+  <div class="cards c2">
+    <div class="card">
+      <h4>双重机制</h4>
+      <ul>
+        <li><b>下一词预测</b>：天然选择最高概率的词 ≈ 大多数人的平均意见</li>
+        <li><b>RLHF 对齐</b>：惩罚有争议的强观点，奖励平衡、不表态的答案</li>
+      </ul>
+      <p>叠加结果 = "向均值回归"。正确、安全、平庸。</p>
+    </div>
+    <div class="card">
+      <h4>关键区分：两种不对称</h4>
+      <ul>
+        <li><b>信息不对称</b>（知道更多事实）→ 宽研究可解决</li>
+        <li><b>认知不对称</b>（知道如何解读）→ 只有个人上下文能解决</li>
+      </ul>
+      <p>AI 能把新手抬到平均线，但对专家几乎无增益——深度天生是非共识的。</p>
+    </div>
+  </div>
+
+  <div class="quote">"一个是快递员，一个是分析师。"
+    <span class="who">—— 有无个人上下文的两台同等模型，做同一个研究任务的差距</span></div>
+
+  <div class="fig">
+    <svg viewBox="0 0 960 300" width="100%" role="img" aria-label="为什么直觉修法失败">
+      <defs>
+        <marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+          <path d="M0,0 L7,3 L0,6 z" fill="#8b95a5"/>
+        </marker>
+        <marker id="arg" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+          <path d="M0,0 L7,3 L0,6 z" fill="#0d7a6f"/>
+        </marker>
+      </defs>
+      <!-- left: intuition fixes -->
+      <text x="150" y="26" text-anchor="middle" font-size="14" font-weight="700" fill="#b91c1c">直觉修法（全部失败）</text>
+      <g font-size="12.5" fill="#4a5568">
+        <rect x="55" y="46" width="190" height="34" rx="8" fill="#fdeaea" stroke="#e6b3b3"/>
+        <text x="150" y="68" text-anchor="middle">换更强的模型</text>
+        <rect x="55" y="96" width="190" height="34" rx="8" fill="#fdeaea" stroke="#e6b3b3"/>
+        <text x="150" y="118" text-anchor="middle">写更精巧的 prompt</text>
+        <rect x="55" y="146" width="190" height="34" rx="8" fill="#fdeaea" stroke="#e6b3b3"/>
+        <text x="150" y="168" text-anchor="middle">叠加多智能体 / harness</text>
+      </g>
+      <g font-size="12" fill="#b91c1c">
+        <text x="265" y="66" >✕ 仍是共识来源</text>
+        <text x="265" y="116">✕ 高维品味塞不进几行</text>
+        <text x="265" y="166">✕ 同一维度内优化</text>
+      </g>
+      <!-- middle barrier -->
+      <line x1="470" y1="30" x2="470" y2="270" stroke="#d8d4c8" stroke-width="2" stroke-dasharray="6 6"/>
+      <text x="470" y="288" text-anchor="middle" font-size="12" fill="#8b95a5">模型智能 ← 同一维度 → 上下文</text>
+      <!-- right: real fix -->
+      <text x="730" y="26" text-anchor="middle" font-size="14" font-weight="700" fill="#0d7a6f">真正的解：上下文基础设施</text>
+      <g font-size="12.5" fill="#4a5568">
+        <rect x="600" y="46" width="260" height="34" rx="8" fill="#e3f2ef" stroke="#9fcec7"/>
+        <text x="730" y="68" text-anchor="middle">积累行为数据（不可言传的判断）</text>
+        <rect x="600" y="96" width="260" height="34" rx="8" fill="#e3f2ef" stroke="#9fcec7"/>
+        <text x="730" y="118" text-anchor="middle">分层蒸馏 → 判断公理</text>
+        <rect x="600" y="146" width="260" height="34" rx="8" fill="#e3f2ef" stroke="#9fcec7"/>
+        <text x="730" y="168" text-anchor="middle">按需加载（记忆层级）</text>
+      </g>
+      <g font-size="12" fill="#0d7a6f">
+        <text x="730" y="212" text-anchor="middle">模型智能会贬值：每次升级都让它廉价而普及</text>
+        <text x="730" y="234" text-anchor="middle">个人上下文不贬值且复利：只属于你</text>
+      </g>
+      <!-- arrows -->
+      <line x1="245" y1="63" x2="292" y2="63" stroke="#8b95a5" stroke-width="1.5" marker-end="url(#ar)"/>
+      <line x1="245" y1="113" x2="292" y2="113" stroke="#8b95a5" stroke-width="1.5" marker-end="url(#ar)"/>
+      <line x1="245" y1="163" x2="292" y2="163" stroke="#8b95a5" stroke-width="1.5" marker-end="url(#ar)"/>
+      <line x1="860" y1="120" x2="905" y2="120" stroke="#0d7a6f" stroke-width="2" marker-end="url(#arg)" opacity="0"/>
+    </svg>
+    <figcaption>图 1 · 为什么"换模型 / 改 prompt"无效：它们都在优化模型智能这一个维度，而实验证明同等智力 + 不同上下文 = 截然不同的产出</figcaption>
+  </div>
+
+  <div class="quote">"更聪明的共识仍然是共识。唯一的出路是注入非共识的视角——你的判断标准、品味和来之不易的直觉。"
+    <span class="who">—— 《Why AI Only Gives You Correct Nonsense》, yage.ai/context-infrastructure-en.html</span></div>
+</section>
+
+<!-- ================================================================ -->
+<section id="s2">
+  <h2><span class="no">02</span>宽研究：让 53 篇博客一篇不少</h2>
+  <p class="lede">所有 LLM 都有一个规律：输出占到上下文窗口的一定比例（50%，有时甚至 20%）就开始偷懒——
+  跳句、缩略、丢条目，然后声称完成了。这是架构问题，不是 prompt 问题。</p>
+
+  <h3>实战基准：53 篇学生博客总结任务</h3>
+  <div class="fig">
+    <div class="bars">
+      <div class="bar"><span class="name">Cursor / ChatGPT</span><div class="track"><div class="fill" style="width:17%"></div></div><span class="val">~9 / 53</span></div>
+      <div class="bar"><span class="name">Deep Research</span><div class="track"><div class="fill" style="width:32%"></div></div><span class="val">~17 / 53</span></div>
+      <div class="bar"><span class="name">Codex 串行硬做</span><div class="track"><div class="fill" style="width:40%"></div></div><span class="val">~21 / 53</span></div>
+      <div class="bar ok"><span class="name">Manus 宽研究</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="val">53 / 53 ✓</span></div>
+      <div class="bar ok"><span class="name">Codex 宽研究</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="val">53 / 53 ✓</span></div>
+    </div>
+    <div class="legend"><span><i style="background:#8b95a5"></i>受长输出偷懒限制</span><span><i style="background:#0d7a6f"></i>分而治之，全覆盖零幻觉</span></div>
+    <figcaption>图 2 · 同一任务各工具完成度（数据来自 yage.ai/wide-research：DeepSeek 的早期总结"基本全是幻觉"）</figcaption>
+  </div>
+
+  <h3>解法：分而治之 + 代码合并</h3>
+  <div class="fig">
+    <svg viewBox="0 0 960 330" width="100%" role="img" aria-label="宽研究流水线">
+      <defs>
+        <marker id="aw" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+          <path d="M0,0 L7,3 L0,6 z" fill="#0d7a6f"/>
+        </marker>
+      </defs>
+      <!-- stage 1 -->
+      <rect x="20" y="120" width="150" height="76" rx="10" fill="#e3f2ef" stroke="#9fcec7"/>
+      <text x="95" y="150" text-anchor="middle" font-size="13.5" font-weight="700" fill="#0d7a6f">0 · 侦察</text>
+      <text x="95" y="170" text-anchor="middle" font-size="11.5" fill="#4a5568">主控亲自摸维度</text>
+      <text x="95" y="186" text-anchor="middle" font-size="11.5" fill="#4a5568">先拿到真实样本</text>
+      <!-- stage 2 -->
+      <rect x="210" y="120" width="150" height="76" rx="10" fill="#eef2ff" stroke="#b6c0f0"/>
+      <text x="285" y="150" text-anchor="middle" font-size="13.5" font-weight="700" fill="#4338ca">1 · 清单</text>
+      <text x="285" y="170" text-anchor="middle" font-size="11.5" fill="#4a5568">每子任务一行 JSON</text>
+      <text x="285" y="186" text-anchor="middle" font-size="11.5" fill="#4a5568">独立可执行</text>
+      <!-- fan out -->
+      <g>
+        <rect x="420" y="38" width="128" height="52" rx="8" fill="#fff" stroke="#d8d4c8"/>
+        <text x="484" y="68" text-anchor="middle" font-size="12">worker：博客 #1</text>
+        <rect x="420" y="132" width="128" height="52" rx="8" fill="#fff" stroke="#d8d4c8"/>
+        <text x="484" y="162" text-anchor="middle" font-size="12">worker：博客 #2</text>
+        <rect x="420" y="226" width="128" height="52" rx="8" fill="#fff" stroke="#d8d4c8"/>
+        <text x="484" y="250" text-anchor="middle" font-size="12">worker：…#53</text>
+        <text x="484" y="266" text-anchor="middle" font-size="11" fill="#8b95a5">并行 · 上下文隔离</text>
+      </g>
+      <text x="484" y="26" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0d7a6f">2 · 扇出</text>
+      <!-- stage 3 -->
+      <rect x="600" y="120" width="160" height="76" rx="10" fill="#fdf3e3" stroke="#e8cf9f"/>
+      <text x="680" y="150" text-anchor="middle" font-size="13.5" font-weight="700" fill="#b45309">3 · 代码合并</text>
+      <text x="680" y="170" text-anchor="middle" font-size="11.5" fill="#4a5568">脚本逐字拼接</text>
+      <text x="680" y="186" text-anchor="middle" font-size="11.5" fill="#4a5568">不用 LLM · 无损</text>
+      <!-- stage 4 -->
+      <rect x="800" y="120" width="140" height="76" rx="10" fill="#e3f2ef" stroke="#9fcec7"/>
+      <text x="870" y="150" text-anchor="middle" font-size="13.5" font-weight="700" fill="#0d7a6f">4 · 分章润色</text>
+      <text x="870" y="170" text-anchor="middle" font-size="11.5" fill="#4a5568">逐章改写 · 引用不动</text>
+      <text x="870" y="186" text-anchor="middle" font-size="11.5" fill="#4a5568">两步 QA 收尾</text>
+      <!-- arrows -->
+      <line x1="170" y1="158" x2="204" y2="158" stroke="#0d7a6f" stroke-width="2" marker-end="url(#aw)"/>
+      <line x1="360" y1="158" x2="412" y2="64" stroke="#0d7a6f" stroke-width="2" marker-end="url(#aw)"/>
+      <line x1="360" y1="158" x2="412" y2="158" stroke="#0d7a6f" stroke-width="2" marker-end="url(#aw)"/>
+      <line x1="360" y1="158" x2="412" y2="252" stroke="#0d7a6f" stroke-width="2" marker-end="url(#aw)"/>
+      <line x1="548" y1="64" x2="594" y2="150" stroke="#0d7a6f" stroke-width="2" marker-end="url(#aw)"/>
+      <line x1="548" y1="158" x2="594" y2="158" stroke="#0d7a6f" stroke-width="2" marker-end="url(#aw)"/>
+      <line x1="548" y1="252" x2="594" y2="166" stroke="#0d7a6f" stroke-width="2" marker-end="url(#aw)"/>
+      <line x1="760" y1="158" x2="794" y2="158" stroke="#0d7a6f" stroke-width="2" marker-end="url(#aw)"/>
+      <text x="480" y="310" text-anchor="middle" font-size="12" fill="#8b95a5">关键不变量：合并必须是纯代码（引用逐字保留）—— 只有润色阶段碰 LLM，且逐章进行</text>
+    </svg>
+    <figcaption>图 3 · 宽研究流水线：任何单个 agent 的输出都很短，从结构上消灭偷懒</figcaption>
+  </div>
+
+  <div class="cards c2">
+    <div class="card">
+      <h4>反"角色扮演"多智能体</h4>
+      <p>不写"你是一名资深工程师"这类角色 prompt——LLM 本来就持有全部职业技能，角色设定只会<b>限制</b>它。
+      正确做法是<b>上下文窗口隔离</b>：不同进程拿不同子问题，只通过文件与主控通信。</p>
+    </div>
+    <div class="card">
+      <h4>像 senior manager 一样管理 AI</h4>
+      <ul>
+        <li>不要微观管理，去<b>设计流程</b></li>
+        <li>建 5–10 个典型用例做回归测试，对比 prompt 变体</li>
+        <li>把迭代本身也宽研究化：让子 agent 自反思、给"过去的自己"提建议</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<section id="s3">
+  <h2><span class="no">03</span>三层记忆：把判断力沉淀成资产</h2>
+  <p class="lede">高手说不清自己为什么厉害——大部分是看不见的肌肉记忆。所以系统收集<b>行为数据</b>而非自我报告：
+  语音转写、会议记录、聊天记录、每一次你对 AI 的纠正。然后按"稳定性"蒸馏：跨情境、跨时间反复出现的判断，才是你真实的认知结构。</p>
+
+  <div class="fig">
+    <svg viewBox="0 0 960 260" width="100%" role="img" aria-label="三层记忆蒸馏流水线">
+      <defs>
+        <marker id="am" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+          <path d="M0,0 L7,3 L0,6 z" fill="#0d7a6f"/>
+        </marker>
+      </defs>
+      <rect x="20" y="80" width="200" height="90" rx="10" fill="#f1f5f9" stroke="#d8d4c8"/>
+      <text x="120" y="112" text-anchor="middle" font-size="13.5" font-weight="700" fill="#475569">原始行为数据</text>
+      <text x="120" y="132" text-anchor="middle" font-size="11.5" fill="#4a5568">语音 · 会议 · 聊天 · AI 对话纠正</text>
+      <text x="120" y="150" text-anchor="middle" font-size="11.5" fill="#4a5568">本地文件 · 一个目录</text>
+
+      <rect x="280" y="30" width="180" height="58" rx="10" fill="#e3f2ef" stroke="#9fcec7"/>
+      <text x="370" y="54" text-anchor="middle" font-size="13" font-weight="700" fill="#0d7a6f">L1 观察者（每日）</text>
+      <text x="370" y="72" text-anchor="middle" font-size="11.5" fill="#4a5568">扫描变更 · 写观察日志</text>
+      <rect x="280" y="100" width="180" height="58" rx="10" fill="#e3f2ef" stroke="#9fcec7"/>
+      <text x="370" y="124" text-anchor="middle" font-size="13" font-weight="700" fill="#0d7a6f">L2 反思者（每周）</text>
+      <text x="370" y="142" text-anchor="middle" font-size="11.5" fill="#4a5568">去重 · 剪枝 · 跨项目模式</text>
+      <rect x="280" y="170" width="180" height="58" rx="10" fill="#e3f2ef" stroke="#9fcec7"/>
+      <text x="370" y="194" text-anchor="middle" font-size="13" font-weight="700" fill="#0d7a6f">L3 公理（不定期）</text>
+      <text x="370" y="212" text-anchor="middle" font-size="11.5" fill="#4a5568">稳定模式 → 决策原则</text>
+
+      <rect x="520" y="80" width="190" height="90" rx="10" fill="#fdf3e3" stroke="#e8cf9f"/>
+      <text x="615" y="110" text-anchor="middle" font-size="13" font-weight="700" fill="#b45309">按需加载</text>
+      <text x="615" y="130" text-anchor="middle" font-size="11.5" fill="#4a5568">L1 cache：AGENTS.md</text>
+      <text x="615" y="147" text-anchor="middle" font-size="11.5" fill="#4a5568">L2：技能索引</text>
+      <text x="615" y="164" text-anchor="middle" font-size="11.5" fill="#4a5568">L3：技能/公理文件</text>
+
+      <rect x="760" y="80" width="180" height="90" rx="10" fill="#e8f5e9" stroke="#a8d5ac"/>
+      <text x="850" y="110" text-anchor="middle" font-size="13" font-weight="700" fill="#15803d">反馈闭环</text>
+      <text x="850" y="130" text-anchor="middle" font-size="11.5" fill="#4a5568">简报/报告消费上下文</text>
+      <text x="850" y="147" text-anchor="middle" font-size="11.5" fill="#4a5568">同时再生新数据</text>
+      <text x="850" y="164" text-anchor="middle" font-size="11.5" fill="#4a5568">循环自增强</text>
+
+      <line x1="220" y1="110" x2="274" y2="62" stroke="#0d7a6f" stroke-width="2" marker-end="url(#am)"/>
+      <line x1="220" y1="125" x2="274" y2="125" stroke="#0d7a6f" stroke-width="2" marker-end="url(#am)"/>
+      <line x1="220" y1="145" x2="274" y2="195" stroke="#0d7a6f" stroke-width="2" marker-end="url(#am)"/>
+      <line x1="460" y1="125" x2="514" y2="125" stroke="#0d7a6f" stroke-width="2" marker-end="url(#am)"/>
+      <line x1="710" y1="125" x2="754" y2="125" stroke="#0d7a6f" stroke-width="2" marker-end="url(#am)"/>
+      <path d="M 850 80 Q 850 14 480 14 Q 120 14 120 74" fill="none" stroke="#a8d5ac" stroke-width="1.6" stroke-dasharray="5 5" marker-end="url(#am)"/>
+    </svg>
+    <figcaption>图 4 · 三层记忆流水线（虚拟线为反馈闭环）。与 Mem0 类事实记忆的本质区别：<b>事实告诉 AI 你是谁；判断公理告诉 AI 你怎么想</b></figcaption>
+  </div>
+
+  <div class="quote">"刻意注入你的偏见是重点——培养出来的偏见是深度的来源。把它显式化，还会带来自我认知：看清自己重视什么、忽略什么。"
+    <span class="who">—— context infrastructure 的立场</span></div>
+</section>
+
+<!-- ================================================================ -->
+<section id="s4">
+  <h2><span class="no">04</span>激励感知验证：信源不是平等的</h2>
+  <p class="lede">信息的价值取决于信源的<b>激励结构</b>。厂商叙事有用，但不能自证。每个关键主张都要追溯到
+  不因该主张获益的独立证据。</p>
+
+  <div class="fig">
+    <svg viewBox="0 0 960 300" width="100%" role="img" aria-label="信源层级金字塔">
+      <polygon points="480,20 560,90 400,90" fill="#eef2ff"/>
+      <text x="480" y="70" text-anchor="middle" font-size="12.5" fill="#4338ca">Tier 1</text>
+      <polygon points="575,100 660,180 300,180 385,100" fill="#fdf3e3"/>
+      <text x="480" y="140" text-anchor="middle" font-size="12.5" fill="#b45309">Tier 2</text>
+      <polygon points="675,190 750,262 210,262 285,190" fill="#f1f5f9"/>
+      <text x="480" y="228" text-anchor="middle" font-size="12.5" fill="#475569">Tier 3</text>
+      <rect x="195" y="270" width="570" height="24" rx="6" fill="#e8f5e9"/>
+      <text x="480" y="287" text-anchor="middle" font-size="12.5" fill="#15803d" font-weight="700">Tier 4 · 行为证据（可信度最高）</text>
+      <g font-size="12.5" fill="#4a5568">
+        <text x="700" y="62">官方文档 · blog · 案例 → 只提取主张</text>
+        <text x="712" y="152">媒体报道 · 软文评测 → 理解叙事，不作证据</text>
+        <text x="712" y="240">独立博客 · HN/Reddit → 验证信号（注意采样偏差）</text>
+        <text x="712" y="287" font-weight="600" fill="#15803d">issues · 迁移故事 · post-mortem · commit → 验证主张</text>
+      </g>
+      <defs>
+        <marker id="aup" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+          <path d="M0,0 L7,3 L0,6 z" fill="#15803d"/>
+        </marker>
+      </defs>
+      <line x1="120" y1="286" x2="120" y2="40" stroke="#15803d" stroke-width="2" marker-end="url(#aup)"/>
+      <text x="106" y="165" text-anchor="middle" font-size="12" fill="#15803d" transform="rotate(-90 106 165)">可信度递增</text>
+    </svg>
+    <figcaption>图 5 · 四级信源金字塔。可信度链条：态度表达 &lt; 使用场景 &lt; 对比决策 &lt; 迁移故事 &lt; post-mortem &lt; 代码/commit 证据</figcaption>
+  </div>
+
+  <div class="cards c2">
+    <div class="card">
+      <h4>Claim Ledger（主张台账）</h4>
+      <p>每个关键主张一行：主张内容 · 信源层级 · 验证通道（哪类 Tier 3–4 信源能证实/证伪）· 状态。
+      只有 Tier 3–4 证据能把状态改为 verified / refuted；<b>contested（证据冲突）是合法结果</b>，
+      应写进报告而非悄悄选边。</p>
+    </div>
+    <div class="card">
+      <h4>读者模式（写作契约）</h4>
+      <ul>
+        <li><b>Mode A 内部备忘</b>：读者共享长期上下文 → 跳过常识，只写会改变结论的未知点</li>
+        <li><b>Mode B 外部论证</b>：零预设读者 → 显式回答 why this matters，最有用的判断放前几段</li>
+      </ul>
+      <p>三问选模式：读者共享上下文吗？要快判断还是要信服？拿掉私有背景报告还成立吗？</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<section id="s5">
+  <h2><span class="no">05</span>实现映射：理念 → deep-research-agent 代码</h2>
+  <p class="lede">本图谱的每个理念都在仓库中有对应实现，并经过 GLM-5.3-Flash 端到端实测（19 分钟完成
+  DuckDB 调研，3 信源交叉验证，独立抽查无幻觉）。</p>
+
+  <table class="map">
+    <tr><th>理念</th><th>来源</th><th>仓库实现</th><th>实测表现</th></tr>
+    <tr><td>文档即记忆</td><td>deep_research_agent</td><td><code>scratchpad.py</code> — 8 区结构化共享记忆，角色署名追加</td><td>planner 的 freshness 约束成功传递给 executor</td></tr>
+    <tr><td>Planner ⇄ Executor</td><td>deep_research_agent</td><td><code>orchestrator.py</code> + <code>agents/</code>，控制标记 INVOKE_EXECUTOR / TASK_COMPLETE</td><td>2 轮循环自动收敛</td></tr>
+    <tr><td>宽研究流水线</td><td>codex_wide_research</td><td><code>wide.py</code> — 侦察→清单→并行扇出→代码合并→分章综合</td><td>smoke test 验证引用逐字保留 + 缺口标记</td></tr>
+    <tr><td>代码合并不变量</td><td>Manus 启发</td><td><code>wide.aggregate()</code> 纯代码，永不调 LLM</td><td>单元级验证</td></tr>
+    <tr><td>信源分级 + 台账</td><td>context-infrastructure</td><td><code>rules/source_tiers.md</code> + scratchpad 内置 Claim Ledger 区</td><td>DuckLabs 加入 AWS 被正确标注"厂商叙事未验证"</td></tr>
+    <tr><td>提供商无关</td><td>本仓库新增</td><td><code>llm.py</code> — OpenAI 兼容 + Anthropic 统一抽象</td><td>GLM-5.3-Flash 全角色实测通过</td></tr>
+    <tr><td>用户主权</td><td>deep_research_agent</td><td>命令确认门 + 会话沙箱 + 内联引用</td><td>—</td></tr>
+  </table>
+
+  <div class="quote">实测语录（planner 自动写下）："今天是 2026-08-30。DuckDB 发布频繁，<b>最新稳定版必须来自实时官方信源，内存中的版本号默认存疑</b>。"
+    <span class="who">—— 规则文件中的方法论被模型真实执行的证据</span></div>
+</section>
+
+<!-- ================================================================ -->
+<section id="s6">
+  <h2><span class="no">06</span>行动清单：从今天开始积累</h2>
+  <p class="lede">别人的公理代表别人的视角。以下是启动你自己上下文基础设施的最小路径：</p>
+  <div class="cards c3">
+    <div class="card">
+      <h4>① 数据层（本周）</h4>
+      <ul>
+        <li>建一个目录收一切行为痕迹：会议记录、AI 对话导出、你的每次纠正</li>
+        <li>规则只有一条：本地文件、集中一处</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>② 蒸馏层（每日/每周 15 分钟）</h4>
+      <ul>
+        <li>日：让 AI 读当日变更写观察日志</li>
+        <li>周：让 AI 去重剪枝、找跨项目模式</li>
+        <li>不定期：把稳定判断写成一条公理</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>③ 消费层（持续）</h4>
+      <ul>
+        <li>研究任务走 deep-research-agent：成功标准 + claim 台账就是你的判断上下文</li>
+        <li>每份 runs/ 产物回流数据层，闭环复利</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p><b>来源</b> · <a href="https://yage.ai/context-infrastructure-en.html">Why AI Only Gives You Correct Nonsense</a> ·
+     <a href="https://yage.ai/wide-research.html">Wide Research（中文）</a> ·
+     <a href="https://github.com/grapeot/context-infrastructure">context-infrastructure</a> ·
+     <a href="https://github.com/grapeot/deep_research_agent">deep_research_agent</a> ·
+     <a href="https://github.com/grapeot/codex_wide_research">codex_wide_research</a> ·
+     <a href="https://manus.im/blog/introducing-wide-research">Manus Wide Research</a> ·
+     <a href="https://www.anthropic.com/engineering/built-multi-agent-research-system">Anthropic 多智能体研究系统</a></p>
+  <p><b>沉淀文档</b> · <a href="yage-methodology.md">yage-methodology.md</a>（本图谱的文字版笔记）·
+     实现仓库 <a href="https://github.com/longxinjun-ai/deep-research-agent">longxinjun-ai/deep-research-agent</a> · 整理于 2026-08-30</p>
+</footer>
+
+</main>
+
+<script>
+// active nav highlight
+const items=[...document.querySelectorAll('nav a.item')];
+const secs=items.map(a=>document.querySelector(a.getAttribute('href')));
+const io=new IntersectionObserver(es=>{
+  es.forEach(e=>{ if(e.isIntersecting){
+    items.forEach(i=>i.classList.remove('active'));
+    items[secs.indexOf(e.target)].classList.add('active');
+  }});
+},{rootMargin:'-40% 0px -55% 0px'});
+secs.forEach(s=>s&&io.observe(s));
+</script>
+</body>
+</html>

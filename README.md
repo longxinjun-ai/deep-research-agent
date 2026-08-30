@@ -113,6 +113,11 @@ examples/                   sample runs (deep + wide)
 
 ## Methodology worth reading even if you never run the code
 
+- [docs/yage-methodology-map.html](docs/yage-methodology-map.html) — **visual
+  knowledge map** of the whole methodology (consensus ceiling, wide research,
+  three-tier memory, source tiers → this repo's implementation)
+- [docs/yage-methodology.md](docs/yage-methodology.md) — the same map as
+  consolidated notes (Chinese)
 - [docs/DESIGN.md](docs/DESIGN.md) — architecture and upstream lineage
 - [deep_research_agent/rules/source_tiers.md](deep_research_agent/rules/source_tiers.md) — incentive-aware source
   tiers, claim ledger, reader modes
