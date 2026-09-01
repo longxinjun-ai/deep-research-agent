@@ -118,6 +118,9 @@ examples/                   sample runs (deep + wide)
   three-tier memory, source tiers → this repo's implementation)
 - [docs/yage-methodology.md](docs/yage-methodology.md) — the same map as
   consolidated notes (Chinese)
+- [docs/retrieval-landscape.md](docs/retrieval-landscape.md) — survey of the
+  AI-era retrieval landscape: Undermind / Tavily / Perplexity / Exa + open-source
+  wide & deep research projects, with takeaways for this repo (Chinese)
 - [docs/DESIGN.md](docs/DESIGN.md) — architecture and upstream lineage
 - [deep_research_agent/rules/source_tiers.md](deep_research_agent/rules/source_tiers.md) — incentive-aware source
   tiers, claim ledger, reader modes
